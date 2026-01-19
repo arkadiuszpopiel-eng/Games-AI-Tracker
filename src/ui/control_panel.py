@@ -19,6 +19,9 @@ except ImportError:
     logger.error("PyQt6 not available - control panel cannot run")
 
 from core.config import GameProfile, SystemConfig
+from core.main import AIVisionApp
+from utils.gpu_detector import GPUDetector
+from utils.profile_manager import ProfileManager
 
 
 if PYQT_AVAILABLE:
@@ -30,7 +33,17 @@ if PYQT_AVAILABLE:
             super().__init__()
             self.system_config = system_config
             self.current_profile: Optional[GameProfile] = None
+            self.app: Optional[AIVisionApp] = None
+            self.is_running = False
+            self.profile_manager = ProfileManager(system_config.profile_dir)
+            self.gpu_detector = GPUDetector()
+
+            # Detect GPU on startup
+            self.gpu_type, self.gpu_backend, self.gpu_info = self.gpu_detector.detect()
+
             self._setup_ui()
+            self._connect_signals()
+            self._start_update_timer()
 
         def _setup_ui(self):
             """Setup UI components."""
@@ -110,6 +123,39 @@ if PYQT_AVAILABLE:
             status_group.setLayout(status_layout)
             layout.addWidget(status_group)
 
+            # GPU Status
+            gpu_group = QGroupBox("GPU Information")
+            gpu_layout = QGridLayout()
+
+            gpu_layout.addWidget(QLabel("Device:"), 0, 0)
+            gpu_name = self.gpu_info.get('name', self.gpu_type.upper()) if self.gpu_info else self.gpu_type.upper()
+            self.gpu_device_label = QLabel(gpu_name)
+            gpu_layout.addWidget(self.gpu_device_label, 0, 1)
+
+            gpu_layout.addWidget(QLabel("Backend:"), 1, 0)
+            backend_text = self.gpu_backend.upper()
+            if self.gpu_info and self.gpu_info.get('needs_install'):
+                backend_text += " ⚠️"
+            self.gpu_backend_label = QLabel(backend_text)
+            gpu_layout.addWidget(self.gpu_backend_label, 1, 1)
+
+            # Show status if GPU needs configuration
+            if self.gpu_info and 'status' in self.gpu_info:
+                gpu_layout.addWidget(QLabel("Status:"), 2, 0)
+                status_label = QLabel(self.gpu_info['status'])
+                status_label.setStyleSheet("color: orange;")
+                gpu_layout.addWidget(status_label, 2, 1)
+
+            if self.gpu_info and 'memory_total_gb' in self.gpu_info:
+                row = 3 if 'status' in self.gpu_info else 2
+                gpu_layout.addWidget(QLabel("VRAM:"), row, 0)
+                vram_text = f"{self.gpu_info['memory_total_gb']:.1f} GB"
+                self.gpu_vram_label = QLabel(vram_text)
+                gpu_layout.addWidget(self.gpu_vram_label, row, 1)
+
+            gpu_group.setLayout(gpu_layout)
+            layout.addWidget(gpu_group)
+
             # Performance Metrics
             perf_group = QGroupBox("Performance Metrics")
             perf_layout = QGridLayout()
@@ -143,7 +189,8 @@ if PYQT_AVAILABLE:
             profile_layout.addWidget(QLabel("Active Profile:"))
 
             self.profile_combo = QComboBox()
-            self.profile_combo.addItems(["None", "Dark Souls III", "Elden Ring", "Custom"])
+            # Load profiles dynamically
+            self._load_profiles_list()
             profile_layout.addWidget(self.profile_combo)
 
             load_btn = QPushButton("Load")
@@ -331,6 +378,119 @@ if PYQT_AVAILABLE:
             layout.addWidget(version_label)
 
             return footer
+
+        def _load_profiles_list(self):
+            """Load available profiles into combo box."""
+            self.profile_combo.addItem("None")
+
+            # Get all profiles from profile manager
+            profiles = self.profile_manager.list_profiles()
+
+            # Profile display name mapping
+            self.profile_display_map = {}
+
+            for profile_id in profiles:
+                try:
+                    profile = self.profile_manager.get_profile(profile_id)
+                    if profile:
+                        display_name = profile.name
+                        self.profile_combo.addItem(display_name)
+                        self.profile_display_map[display_name] = profile_id
+                except Exception as e:
+                    logger.warning(f"Failed to load profile {profile_id}: {e}")
+
+        def _connect_signals(self):
+            """Connect button signals to handlers."""
+            self.start_stop_btn.clicked.connect(self._on_start_stop)
+            self.profile_combo.currentTextChanged.connect(self._on_profile_changed)
+
+        def _start_update_timer(self):
+            """Start timer for status updates."""
+            self.update_timer = QTimer()
+            self.update_timer.timeout.connect(self._update_status)
+            self.update_timer.start(1000)  # Update every 1 second
+
+        def _on_start_stop(self):
+            """Handle start/stop button click."""
+            if not self.is_running:
+                # Start system
+                logger.info("Starting AI Vision System...")
+
+                # Check if profile is selected
+                profile_name = self.profile_combo.currentText()
+                if profile_name == "None":
+                    logger.error("Please select a profile first!")
+                    self.log_viewer.append("[ERROR] Please select a profile first!")
+                    return
+
+                # Get profile ID from display name
+                profile_id = self.profile_display_map.get(profile_name)
+
+                # Create app instance
+                try:
+                    self.app = AIVisionApp()
+
+                    # Start with selected profile
+                    if self.app.start(profile_id=profile_id):
+                        self.is_running = True
+                        self.start_stop_btn.setText("⏹ Stop System")
+                        self.start_stop_btn.setStyleSheet("font-size: 14px; padding: 10px; background-color: #ff4444;")
+                        self.status_label.setText("● RUNNING")
+                        self.status_label.setStyleSheet("color: green; font-weight: bold;")
+                        self.capture_status.setText("Running")
+                        self.ai_status.setText("Running")
+                        self.overlay_status.setText("Running")
+                        logger.info("System started successfully!")
+                        self.log_viewer.append("[INFO] System started successfully!")
+                    else:
+                        logger.error("Failed to start system")
+                        self.log_viewer.append("[ERROR] Failed to start system - check logs")
+                except Exception as e:
+                    logger.error(f"Error starting system: {e}")
+                    self.log_viewer.append(f"[ERROR] {str(e)}")
+
+            else:
+                # Stop system
+                logger.info("Stopping AI Vision System...")
+                if self.app:
+                    self.app.stop()
+                    self.app = None
+
+                self.is_running = False
+                self.start_stop_btn.setText("▶ Start System")
+                self.start_stop_btn.setStyleSheet("font-size: 14px; padding: 10px;")
+                self.status_label.setText("● STOPPED")
+                self.status_label.setStyleSheet("color: red; font-weight: bold;")
+                self.capture_status.setText("Not Running")
+                self.ai_status.setText("Not Running")
+                self.overlay_status.setText("Not Running")
+                self.fps_label.setText("0")
+                logger.info("System stopped")
+                self.log_viewer.append("[INFO] System stopped")
+
+        def _on_profile_changed(self, profile_name: str):
+            """Handle profile selection change."""
+            logger.info(f"Profile changed to: {profile_name}")
+
+            # Update profile info
+            if profile_name != "None":
+                info_text = f"Profile: {profile_name}\n"
+                info_text += f"GPU: {self.gpu_type.upper()}\n"
+                info_text += f"Backend: {self.gpu_backend}\n"
+                self.profile_info.setPlainText(info_text)
+            else:
+                self.profile_info.clear()
+
+        def _update_status(self):
+            """Update status displays (called by timer)."""
+            if self.is_running and self.app and self.app.pipeline:
+                # Update FPS (placeholder - pipeline needs to expose this)
+                # self.fps_label.setText(f"{self.app.pipeline.fps:.1f}")
+
+                # Update detection preview (placeholder)
+                # detections = self.app.pipeline.get_latest_detections()
+                # self.detection_preview.setPlainText(str(detections))
+                pass
 
 
 def main():

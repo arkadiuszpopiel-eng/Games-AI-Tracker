@@ -63,6 +63,29 @@ class GPUDetector:
 
     def _detect_nvidia_cuda(self) -> bool:
         """Wykryj NVIDIA GPU z CUDA."""
+        # First, check if NVIDIA GPU exists in system (Windows)
+        nvidia_gpu_name = None
+        if sys.platform == "win32":
+            try:
+                result = subprocess.run(
+                    ["wmic", "path", "win32_VideoController", "get", "name"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                gpu_names = [line.strip() for line in result.stdout.split('\n')
+                            if line.strip() and 'Name' not in line]
+
+                # Find NVIDIA GPU
+                for name in gpu_names:
+                    if "NVIDIA" in name or "GeForce" in name or "RTX" in name:
+                        nvidia_gpu_name = name
+                        logger.info(f"🔍 System detected NVIDIA GPU: {name}")
+                        break
+            except Exception as e:
+                logger.debug(f"WMIC detection failed: {e}")
+
+        # Try PyTorch CUDA detection
         try:
             import torch
             if torch.cuda.is_available():
@@ -94,8 +117,41 @@ class GPUDetector:
                     self.gpu_info["recommended_batch_size"] = 2
 
                 return True
+            elif nvidia_gpu_name:
+                # PyTorch doesn't see CUDA, but NVIDIA GPU exists
+                logger.warning(f"⚠️  NVIDIA GPU detected ({nvidia_gpu_name}) but PyTorch CUDA unavailable!")
+                logger.warning("   Install PyTorch with CUDA support:")
+                logger.warning("   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121")
+
+                # Still mark as detected for UI purposes
+                self.device_type = "cuda"
+                self.backend = "cuda_unavailable"
+                self.device_name = nvidia_gpu_name
+                self.gpu_info = {
+                    "vendor": "NVIDIA",
+                    "name": nvidia_gpu_name,
+                    "status": "CUDA not configured",
+                    "needs_install": True
+                }
+
+                return True
 
         except ImportError:
+            if nvidia_gpu_name:
+                logger.warning(f"⚠️  NVIDIA GPU detected ({nvidia_gpu_name}) but PyTorch not installed!")
+                logger.warning("   Install PyTorch with CUDA support:")
+                logger.warning("   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121")
+
+                self.device_type = "cuda"
+                self.backend = "pytorch_missing"
+                self.device_name = nvidia_gpu_name
+                self.gpu_info = {
+                    "vendor": "NVIDIA",
+                    "name": nvidia_gpu_name,
+                    "status": "PyTorch not installed",
+                    "needs_install": True
+                }
+                return True
             logger.debug("PyTorch z CUDA nie zainstalowany")
         except Exception as e:
             logger.debug(f"Błąd detekcji CUDA: {e}")

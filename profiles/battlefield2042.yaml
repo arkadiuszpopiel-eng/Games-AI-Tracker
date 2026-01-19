@@ -1,0 +1,140 @@
+name: "Battlefield 2042"
+game_id: "battlefield2042"
+version: "1.0"
+
+capture:
+  fps: 60
+  roi: null  # Full screen
+  monitor: 0
+  format: "RGB"
+
+ai:
+  model: "yolov8m"  # Larger model for complex battlefield
+  confidence: 0.65
+  iou_threshold: 0.45
+  device: "auto"
+  batch_size: 2
+
+ocr:
+  engine: "easyocr"
+  language: "eng"
+  zones:
+    health: [50, 920, 200, 40]
+    armor: [50, 960, 200, 35]
+    ammo: [1720, 950, 160, 50]
+    squad: [30, 100, 250, 150]
+    objective: [900, 50, 320, 60]
+
+rules:
+  - name: "enemy_close_quarters"
+    state: "combat"
+    priority: 10
+    conditions:
+      - "enemy.distance < 100"
+      - "enemy.threat_score > 0.75"
+    actions:
+      - type: "emit"
+        payload: "CLOSE_COMBAT"
+    cooldown: 1.0
+
+  - name: "vehicle_threat"
+    state: "*"
+    priority: 9
+    conditions:
+      - "enemy.type == 'vehicle'"
+      - "enemy.distance < 400"
+    actions:
+      - type: "emit"
+        payload: "VEHICLE_NEARBY"
+    cooldown: 2.0
+
+  - name: "sniper_detection"
+    state: "*"
+    priority: 8
+    conditions:
+      - "enemy.type == 'player'"
+      - "enemy.distance > 300"
+      - "player.hp_lost > 30"  # Took significant damage from range
+    actions:
+      - type: "emit"
+        payload: "SNIPER_THREAT"
+    cooldown: 3.0
+
+  - name: "low_health"
+    state: "*"
+    priority: 10
+    conditions:
+      - "player.hp < 35"
+    actions:
+      - type: "emit"
+        payload: "LOW_HEALTH"
+    cooldown: 4.0
+
+  - name: "surrounded"
+    state: "combat"
+    priority: 9
+    conditions:
+      - "environment.total_enemies >= 4"
+      - "enemy.closest_distance < 200"
+    actions:
+      - type: "emit"
+        payload: "SURROUNDED"
+    cooldown: 2.0
+
+  - name: "low_ammo"
+    state: "combat"
+    priority: 7
+    conditions:
+      - "player.ammo < 15"
+    actions:
+      - type: "emit"
+        payload: "LOW_AMMO"
+    cooldown: 5.0
+
+  - name: "objective_contested"
+    state: "*"
+    priority: 7
+    conditions:
+      - "objective.status == 'contested'"
+      - "environment.total_enemies >= 2"
+    actions:
+      - type: "emit"
+        payload: "OBJECTIVE_HOTZONE"
+    cooldown: 3.0
+
+  - name: "flanking_opportunity"
+    state: "combat"
+    priority: 6
+    conditions:
+      - "enemy.count >= 2"
+      - "enemy.unaware == true"
+      - "enemy.distance < 150"
+    actions:
+      - type: "emit"
+        payload: "FLANK_AVAILABLE"
+    cooldown: 5.0
+
+hud:
+  theme: "tactical_minimal"
+  show_proximity_rings: true
+  show_direction_arrows: true
+  show_health_warnings: true
+  show_ammo_counter: true
+  show_vehicle_threats: true
+  opacity: 0.70
+  scale: 0.95
+
+performance:
+  mode: "PERFORMANCE"
+  max_latency_ms: 35  # Fast-paced FPS
+  frame_skip: false
+  adaptive_quality: true
+
+custom:
+  game_notes: "Battlefield 2042 - Large-scale warfare. Focus on vehicle detection and multi-directional threats"
+  developer: "DICE"
+  publisher: "EA"
+  genre: "Large-Scale FPS"
+  release_year: 2021
+  anti_cheat: "EA AntiCheat"
+  max_players: 128

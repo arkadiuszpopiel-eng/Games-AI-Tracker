@@ -1,0 +1,149 @@
+name: "Apex Legends"
+game_id: "apexlegends"
+version: "1.0"
+
+capture:
+  fps: 60
+  roi: null  # Full screen
+  monitor: 0
+  format: "RGB"
+
+ai:
+  model: "yolov8s"
+  confidence: 0.68
+  iou_threshold: 0.42
+  device: "auto"
+  batch_size: 2
+
+ocr:
+  engine: "easyocr"
+  language: "eng"
+  zones:
+    health: [50, 880, 180, 35]
+    shield: [50, 920, 180, 35]
+    ammo: [1720, 930, 150, 45]
+    abilities: [900, 920, 100, 60]
+    squad: [1750, 50, 150, 120]
+
+rules:
+  - name: "enemy_squad_detected"
+    state: "exploration"
+    priority: 9
+    conditions:
+      - "enemy.count >= 2"
+      - "enemy.distance < 250"
+    actions:
+      - type: "emit"
+        payload: "ENEMY_SQUAD"
+    cooldown: 2.0
+
+  - name: "close_combat"
+    state: "combat"
+    priority: 10
+    conditions:
+      - "enemy.distance < 80"
+      - "enemy.threat_score > 0.7"
+    actions:
+      - type: "emit"
+        payload: "CLOSE_RANGE_COMBAT"
+    cooldown: 1.0
+
+  - name: "shield_broken"
+    state: "combat"
+    priority: 10
+    conditions:
+      - "player.shield < 10"
+      - "state == 'combat'"
+    actions:
+      - type: "emit"
+        payload: "SHIELD_BROKEN"
+    cooldown: 2.0
+
+  - name: "low_health"
+    state: "*"
+    priority: 10
+    conditions:
+      - "player.hp < 35"
+    actions:
+      - type: "emit"
+        payload: "LOW_HEALTH"
+    cooldown: 3.0
+
+  - name: "third_party"
+    state: "combat"
+    priority: 9
+    conditions:
+      - "environment.total_enemies >= 4"
+      - "combat_duration > 20"
+    actions:
+      - type: "emit"
+        payload: "THIRD_PARTY"
+    cooldown: 3.0
+
+  - name: "ability_ready"
+    state: "*"
+    priority: 6
+    conditions:
+      - "abilities.ultimate == 100"
+      - "enemy.distance < 300"
+    actions:
+      - type: "emit"
+        payload: "ULTIMATE_READY"
+    cooldown: 5.0
+
+  - name: "ring_closing"
+    state: "exploration"
+    priority: 8
+    conditions:
+      - "ring.distance < 400"
+      - "ring.damage > 5"
+    actions:
+      - type: "emit"
+        payload: "RING_WARNING"
+    cooldown: 10.0
+
+  - name: "low_ammo"
+    state: "combat"
+    priority: 7
+    conditions:
+      - "player.ammo < 20"
+    actions:
+      - type: "emit"
+        payload: "LOW_AMMO"
+    cooldown: 5.0
+
+  - name: "knockdown_assist"
+    state: "combat"
+    priority: 8
+    conditions:
+      - "enemy.knocked == true"
+      - "enemy.distance < 150"
+    actions:
+      - type: "emit"
+        payload: "FINISH_KNOCKED"
+    cooldown: 2.0
+
+hud:
+  theme: "modern"
+  show_proximity_rings: true
+  show_direction_arrows: true
+  show_health_warnings: true
+  show_ammo_counter: true
+  show_ability_status: true
+  opacity: 0.70
+  scale: 0.85
+
+performance:
+  mode: "PERFORMANCE"
+  max_latency_ms: 25  # Fast-paced movement shooter
+  frame_skip: false
+  adaptive_quality: true
+
+custom:
+  game_notes: "Apex Legends - Hero shooter BR. Focus on squad combat and ability tracking"
+  developer: "Respawn Entertainment"
+  publisher: "EA"
+  genre: "Hero Battle Royale"
+  release_year: 2019
+  anti_cheat: "Easy Anti-Cheat"
+  max_players: 60
