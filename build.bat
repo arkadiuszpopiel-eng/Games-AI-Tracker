@@ -138,13 +138,79 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-echo ✅ Zależności zainstalowane
+echo ✅ Zależności podstawowe zainstalowane
+echo.
+
+:: ============================================================================
+:: KROK 6.5: Detekcja i instalacja wsparcia GPU
+:: ============================================================================
+echo [6.5/9] 🎮 Wykrywanie i konfiguracja GPU...
+echo.
+
+echo   Sprawdzanie dostępnych GPU...
+python -c "from src.utils.gpu_detector import GPUDetector; d = GPUDetector(); dtype, backend, info = d.detect(); print(f'DEVICE:{dtype}'); print(f'BACKEND:{backend}'); print(f'NAME:{info.get(\"name\", \"Unknown\")}' if info else 'NAME:CPU')" >gpu_detect.tmp 2>&1
+
+if exist "gpu_detect.tmp" (
+    for /f "tokens=2 delims=:" %%a in ('findstr "DEVICE:" gpu_detect.tmp') do set GPU_DEVICE=%%a
+    for /f "tokens=2 delims=:" %%a in ('findstr "BACKEND:" gpu_detect.tmp') do set GPU_BACKEND=%%a
+    for /f "tokens=2 delims=:" %%a in ('findstr "NAME:" gpu_detect.tmp') do set GPU_NAME=%%a
+    del gpu_detect.tmp
+)
+
+if not defined GPU_DEVICE set GPU_DEVICE=cpu
+if not defined GPU_BACKEND set GPU_BACKEND=cpu
+if not defined GPU_NAME set GPU_NAME=CPU
+
+echo.
+echo   ════════════════════════════════════════════════════════
+echo   GPU wykryty: !GPU_NAME!
+echo   Typ: !GPU_DEVICE! / Backend: !GPU_BACKEND!
+echo   ════════════════════════════════════════════════════════
+echo.
+
+:: Instalacja odpowiednich pakietów dla GPU
+if "!GPU_DEVICE!"=="cuda" (
+    echo   🎯 NVIDIA GPU wykryte - instaluję CUDA support...
+    python -m pip uninstall -y torch torchvision
+    python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121 --quiet
+    if !errorlevel! equ 0 (
+        echo   ✅ PyTorch z CUDA zainstalowany
+    ) else (
+        echo   ⚠️  Błąd instalacji CUDA - używam domyślnego PyTorch
+    )
+) else if "!GPU_BACKEND!"=="directml" (
+    echo   🎯 AMD GPU wykryte na Windows - instaluję DirectML support...
+    python -m pip install torch-directml --quiet
+    if !errorlevel! equ 0 (
+        echo   ✅ torch-directml zainstalowany dla AMD GPU
+    ) else (
+        echo   ⚠️  Błąd instalacji DirectML - sprawdź ręcznie
+    )
+) else if "!GPU_BACKEND!"=="rocm" (
+    echo   🎯 AMD GPU wykryte na Linux - instaluję ROCm support...
+    python -m pip uninstall -y torch torchvision
+    python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/rocm5.7 --quiet
+    if !errorlevel! equ 0 (
+        echo   ✅ PyTorch z ROCm zainstalowany
+    ) else (
+        echo   ⚠️  Błąd instalacji ROCm - używam domyślnego PyTorch
+    )
+) else (
+    echo   ℹ️  Używam CPU - aplikacja będzie wolniejsza
+    echo   💡 Wskazówka: Jeśli masz GPU, zainstaluj odpowiednie sterowniki:
+    echo      • NVIDIA: https://pytorch.org/get-started/locally/
+    echo      • AMD Windows: pip install torch-directml
+    echo      • AMD Linux: https://pytorch.org/get-started/locally/
+)
+
+echo.
+echo ✅ Konfiguracja GPU zakończona
 echo.
 
 :: ============================================================================
 :: KROK 7: Pobieranie modeli AI (opcjonalne)
 :: ============================================================================
-echo [7/8] 🤖 Konfiguracja modeli AI...
+echo [7/9] 🤖 Konfiguracja modeli AI...
 echo.
 
 if not exist "models" mkdir models
@@ -159,9 +225,24 @@ if %errorlevel% equ 0 (
 echo.
 
 :: ============================================================================
-:: KROK 8: Weryfikacja instalacji
+:: KROK 8: Test GPU
 :: ============================================================================
-echo [8/8] ✔️  Weryfikacja instalacji...
+echo [8/9] 🎮 Test konfiguracji GPU...
+echo.
+
+echo   Testowanie GPU...
+python -m src.utils.gpu_detector 2>nul
+if !errorlevel! equ 0 (
+    echo ✅ GPU poprawnie skonfigurowane
+) else (
+    echo ⚠️  Test GPU nie powiódł się - sprawdź konfigurację
+)
+echo.
+
+:: ============================================================================
+:: KROK 9: Weryfikacja instalacji
+:: ============================================================================
+echo [9/9] ✔️  Weryfikacja instalacji...
 echo.
 
 echo   Sprawdzanie importów...

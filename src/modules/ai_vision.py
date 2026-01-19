@@ -16,6 +16,7 @@ except ImportError:
 
 from core.types import Entity, EntityType, BoundingBox
 from core.config import AIModelConfig
+from utils.gpu_detector import GPUDetector
 
 
 class EntityTracker:
@@ -166,26 +167,65 @@ class AIVisionCore:
         self._initialize_model()
 
     def _initialize_model(self):
-        """Initialize AI model."""
+        """Initialize AI model with automatic GPU detection."""
         if not TORCH_AVAILABLE:
             logger.warning("Running in mock mode - no actual detection will occur")
             return
 
         try:
-            # Determine device
+            # Auto-detect GPU
             if self.config.device == "auto":
-                self.device = "cuda" if torch.cuda.is_available() else "cpu"
+                gpu_detector = GPUDetector()
+                device_type, backend, gpu_info = gpu_detector.detect()
+                self.device = device_type
+                self.gpu_info = gpu_info
+                self.optimal_config = gpu_detector.get_optimal_config()
+
+                logger.info(f"🎯 Wykryto GPU: {gpu_detector.device_name}")
+                logger.info(f"   Backend: {backend}")
+
+                # Specjalne komunikaty dla konkretnych GPU
+                if "4050" in gpu_detector.device_name:
+                    logger.info("💻 RTX 4050 (Laptop) - Optymalizacja dla trybu oszczędzania energii")
+                elif "7900" in gpu_detector.device_name:
+                    logger.info("🚀 RX 7900 GRE - Optymalizacja dla high-end AMD")
+
+                # Obsługa DirectML dla AMD na Windows
+                if backend == "directml":
+                    try:
+                        import torch_directml
+                        self.device = torch_directml.device()
+                        logger.info("✅ Używam DirectML dla AMD GPU")
+                    except ImportError:
+                        logger.warning("⚠️  torch-directml nie zainstalowany, używam CPU")
+                        logger.info("   Zainstaluj: pip install torch-directml")
+                        self.device = "cpu"
+
             else:
                 self.device = self.config.device
+                self.optimal_config = {"batch_size": 1, "fp16": False}
 
             # Load YOLO model
+            logger.info(f"📥 Ładowanie modelu {self.config.model}...")
             self.model = YOLO(self.config.model)
-            self.model.to(self.device)
 
-            logger.info(f"AI Vision initialized with {self.config.model} on {self.device}")
+            # Przenieś model na urządzenie
+            if isinstance(self.device, str) and self.device in ["cuda", "cpu"]:
+                self.model.to(self.device)
+            elif hasattr(self.device, 'type'):  # DirectML device
+                # DirectML obsługuje automatycznie
+                pass
+
+            logger.info(f"✅ AI Vision zainicjalizowany: {self.config.model} na {self.device}")
+
+            # Wyświetl optymalne ustawienia
+            if hasattr(self, 'optimal_config'):
+                logger.info(f"   Batch size: {self.optimal_config.get('batch_size', 1)}")
+                logger.info(f"   FP16: {self.optimal_config.get('fp16', False)}")
 
         except Exception as e:
-            logger.error(f"Failed to initialize AI model: {e}")
+            logger.error(f"❌ Błąd inicjalizacji modelu AI: {e}")
+            logger.info("   Sprawdź instalację GPU - uruchom: python -m utils.gpu_detector")
             self.model = None
 
     def detect(self, frame: np.ndarray) -> List[Entity]:

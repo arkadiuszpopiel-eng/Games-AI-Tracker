@@ -4,10 +4,27 @@ opencv-python>=4.8.0
 Pillow>=10.0.0
 
 # AI/ML
+# UWAGA: Dla GPU wybierz jedną opcję poniżej:
+#
+# 1. NVIDIA GPU (RTX 4050, RTX 3000/4000 series):
+#    pip uninstall torch torchvision
+#    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+#
+# 2. AMD GPU - Windows (RX 7900 GRE, RX 6000/7000):
+#    pip install torch-directml
+#
+# 3. AMD GPU - Linux (ROCm):
+#    pip install torch torchvision --index-url https://download.pytorch.org/whl/rocm5.7
+#
+# 4. CPU (Domyślnie - wolniejsze):
 torch>=2.0.0
 torchvision>=0.15.0
+
 ultralytics>=8.0.0  # YOLO v8
 onnxruntime>=1.15.0
+
+# Opcjonalne: AMD DirectML dla Windows (odkomentuj jeśli masz AMD GPU)
+# torch-directml>=0.2.0
 
 # OCR
 pytesseract>=0.3.10
