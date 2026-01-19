@@ -1,0 +1,81 @@
+name: "Dark Souls III"
+game_id: "darksouls3"
+version: "1.0"
+
+capture:
+  fps: 60
+  roi: null  # Full screen
+  monitor: 0
+  format: "RGB"
+
+ai:
+  model: "yolov8n"
+  confidence: 0.65
+  iou_threshold: 0.45
+  device: "auto"
+  batch_size: 1
+
+ocr:
+  engine: "tesseract"
+  language: "eng"
+  zones:
+    health: [50, 900, 200, 40]
+    stamina: [50, 945, 200, 30]
+
+rules:
+  - name: "critical_danger"
+    state: "combat"
+    priority: 10
+    conditions:
+      - field: "enemy.distance"
+        operator: "<"
+        value: 150
+      - field: "enemy.threat_score"
+        operator: ">"
+        value: 0.7
+    actions:
+      - type: "emit"
+        payload: "CRITICAL_DANGER"
+    cooldown: 2.0
+
+  - name: "low_health_warning"
+    state: "*"
+    priority: 9
+    conditions:
+      - field: "player.hp"
+        operator: "<"
+        value: 30
+    actions:
+      - type: "emit"
+        payload: "LOW_HEALTH"
+    cooldown: 5.0
+
+  - name: "surrounded"
+    state: "combat"
+    priority: 8
+    conditions:
+      - field: "environment.total_enemies"
+        operator: ">="
+        value: 3
+    actions:
+      - type: "emit"
+        payload: "HIGH_ENEMY_DENSITY"
+    cooldown: 3.0
+
+hud:
+  theme: "tactical_minimal"
+  show_proximity_rings: true
+  show_direction_arrows: true
+  show_health_warnings: true
+  opacity: 0.8
+  scale: 1.0
+
+performance:
+  mode: "PERFORMANCE"
+  max_latency_ms: 50
+  frame_skip: true
+  adaptive_quality: true
+
+custom:
+  game_notes: "Dark Souls III - Focus on enemy proximity and health management"
+  developer: "FromSoftware"

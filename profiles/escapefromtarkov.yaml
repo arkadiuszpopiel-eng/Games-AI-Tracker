@@ -1,0 +1,205 @@
+name: Escape from Tarkov
+game_id: escapefromtarkov
+version: '1.0'
+capture:
+  fps: 60
+  roi: null
+  monitor: 0
+  format: RGB
+ai:
+  model: yolov8m
+  confidence: 0.72
+  iou_threshold: 0.4
+  device: auto
+  batch_size: 2
+ocr:
+  engine: easyocr
+  language: eng
+  zones:
+    health:
+    - 40
+    - 800
+    - 200
+    - 50
+    hydration:
+    - 40
+    - 855
+    - 90
+    - 30
+    energy:
+    - 135
+    - 855
+    - 90
+    - 30
+    ammo:
+    - 1720
+    - 940
+    - 150
+    - 50
+    time:
+    - 1800
+    - 30
+    - 100
+    - 40
+rules:
+- name: scav_detected
+  state: exploration
+  priority: 8
+  conditions:
+  - field: enemy.type
+    operator: ==
+    value: scav
+  - field: enemy.distance
+    operator: <
+    value: 200
+  actions:
+  - type: emit
+    payload: SCAV_NEARBY
+  cooldown: 2.0
+- name: pmc_detected
+  state: '*'
+  priority: 10
+  conditions:
+  - field: enemy.type
+    operator: ==
+    value: player
+  - field: enemy.distance
+    operator: <
+    value: 250
+  actions:
+  - type: emit
+    payload: PMC_THREAT
+  cooldown: 1.5
+- name: heavy_bleeding
+  state: '*'
+  priority: 10
+  conditions:
+  - field: player.bleeding
+    operator: ==
+    value: heavy
+  actions:
+  - type: emit
+    payload: HEAVY_BLEEDING
+  cooldown: 1.0
+- name: low_health_critical
+  state: '*'
+  priority: 10
+  conditions:
+  - field: player.hp
+    operator: <
+    value: 40
+  actions:
+  - type: emit
+    payload: CRITICAL_HEALTH
+  cooldown: 2.0
+- name: dehydration_warning
+  state: '*'
+  priority: 7
+  conditions:
+  - field: player.hydration
+    operator: <
+    value: 20
+  actions:
+  - type: emit
+    payload: LOW_HYDRATION
+  cooldown: 30.0
+- name: energy_warning
+  state: '*'
+  priority: 6
+  conditions:
+  - field: player.energy
+    operator: <
+    value: 20
+  actions:
+  - type: emit
+    payload: LOW_ENERGY
+  cooldown: 30.0
+- name: extract_available
+  state: exploration
+  priority: 7
+  conditions:
+  - field: extraction.distance
+    operator: <
+    value: 100
+  - field: extraction.open
+    operator: ==
+    value: true
+  - field: enemy.distance
+    operator: '>'
+    value: 300
+  actions:
+  - type: emit
+    payload: SAFE_EXTRACT
+  cooldown: 5.0
+- name: time_warning
+  state: '*'
+  priority: 8
+  conditions:
+  - field: raid.time_remaining
+    operator: <
+    value: 300
+  actions:
+  - type: emit
+    payload: TIME_WARNING
+  cooldown: 60.0
+- name: ambush_risk
+  state: exploration
+  priority: 8
+  conditions:
+  - field: location.type
+    operator: ==
+    value: chokepoint
+  - field: movement.speed
+    operator: '>'
+    value: 0.5
+  actions:
+  - type: emit
+    payload: SLOW_DOWN
+  cooldown: 10.0
+- name: low_ammo
+  state: combat
+  priority: 9
+  conditions:
+  - field: player.ammo
+    operator: <
+    value: 10
+  actions:
+  - type: emit
+    payload: LOW_AMMO
+  cooldown: 3.0
+- name: boss_area
+  state: '*'
+  priority: 9
+  conditions:
+  - field: location.boss_area
+    operator: ==
+    value: true
+  - field: enemy.detected
+    operator: ==
+    value: true
+  actions:
+  - type: emit
+    payload: BOSS_DETECTED
+  cooldown: 5.0
+hud:
+  theme: tactical_minimal
+  show_proximity_rings: true
+  show_direction_arrows: true
+  show_health_warnings: true
+  show_ammo_counter: true
+  show_status_effects: true
+  opacity: 0.65
+  scale: 0.9
+performance:
+  mode: QUALITY
+  max_latency_ms: 50
+  frame_skip: true
+  adaptive_quality: true
+custom:
+  game_notes: Escape from Tarkov - Hardcore tactical shooter. Focus on survival, health
+    management, and extract awareness
+  developer: Battlestate Games
+  genre: Hardcore Extraction Shooter
+  release_year: 2017
+  anti_cheat: BattlEye
+  difficulty: Very Hard

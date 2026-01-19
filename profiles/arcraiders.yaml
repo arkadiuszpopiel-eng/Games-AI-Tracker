@@ -1,0 +1,137 @@
+name: Arc Raiders
+game_id: arcraiders
+version: '1.0'
+capture:
+  fps: 60
+  roi: null
+  monitor: 0
+  format: RGB
+ai:
+  model: yolov8s
+  confidence: 0.7
+  iou_threshold: 0.4
+  device: auto
+  batch_size: 2
+ocr:
+  engine: easyocr
+  language: eng
+  zones:
+    health:
+    - 50
+    - 850
+    - 180
+    - 35
+    armor:
+    - 50
+    - 890
+    - 180
+    - 35
+    ammo:
+    - 1750
+    - 950
+    - 150
+    - 40
+    objective:
+    - 960
+    - 50
+    - 300
+    - 50
+rules:
+- name: enemy_spotted
+  state: exploration
+  priority: 9
+  conditions:
+  - field: enemy.distance
+    operator: <
+    value: 300
+  - field: enemy.type
+    operator: ==
+    value: player
+  actions:
+  - type: emit
+    payload: ENEMY_PLAYER_DETECTED
+  cooldown: 1.0
+- name: raider_nearby
+  state: combat
+  priority: 8
+  conditions:
+  - field: enemy.distance
+    operator: <
+    value: 200
+  - field: enemy.threat_score
+    operator: '>'
+    value: 0.6
+  actions:
+  - type: emit
+    payload: HOSTILE_NEARBY
+  cooldown: 2.0
+- name: low_health
+  state: '*'
+  priority: 10
+  conditions:
+  - field: player.hp
+    operator: <
+    value: 40
+  actions:
+  - type: emit
+    payload: LOW_HEALTH
+  cooldown: 3.0
+- name: low_ammo
+  state: combat
+  priority: 7
+  conditions:
+  - field: player.ammo
+    operator: <
+    value: 20
+  actions:
+  - type: emit
+    payload: LOW_AMMO
+  cooldown: 5.0
+- name: multiple_hostiles
+  state: combat
+  priority: 9
+  conditions:
+  - field: environment.total_enemies
+    operator: '>='
+    value: 2
+  - field: enemy.distance
+    operator: <
+    value: 250
+  actions:
+  - type: emit
+    payload: MULTIPLE_THREATS
+  cooldown: 2.5
+- name: extraction_ready
+  state: exploration
+  priority: 6
+  conditions:
+  - field: objective.text
+    operator: ==
+    value: EXTRACTION
+  - field: enemy.distance
+    operator: '>'
+    value: 500
+  actions:
+  - type: emit
+    payload: SAFE_TO_EXTRACT
+  cooldown: 10.0
+hud:
+  theme: modern
+  show_proximity_rings: true
+  show_direction_arrows: true
+  show_health_warnings: true
+  show_ammo_counter: true
+  opacity: 0.75
+  scale: 0.9
+performance:
+  mode: PERFORMANCE
+  max_latency_ms: 30
+  frame_skip: false
+  adaptive_quality: true
+custom:
+  game_notes: Arc Raiders - Extraction shooter with PvPvE. Focus on player detection
+    and threat assessment
+  developer: Embark Studios
+  genre: Extraction Shooter
+  release_year: 2025
+  anti_cheat: Easy Anti-Cheat
