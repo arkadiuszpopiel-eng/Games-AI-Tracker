@@ -1,0 +1,74 @@
+name: "Elden Ring"
+game_id: "eldenring"
+version: "1.0"
+
+capture:
+  fps: 60
+  roi: null
+  monitor: 0
+  format: "RGB"
+
+ai:
+  model: "yolov8s"  # Slightly larger model for better accuracy
+  confidence: 0.6
+  iou_threshold: 0.45
+  device: "auto"
+  batch_size: 1
+
+ocr:
+  engine: "tesseract"
+  language: "eng"
+  zones:
+    health: [48, 880, 220, 45]
+    stamina: [48, 930, 220, 35]
+    fp: [48, 970, 220, 35]  # Focus Points
+
+rules:
+  - name: "boss_encounter"
+    state: "HIGH_RISK_COMBAT"
+    priority: 10
+    conditions:
+      - "enemy.threat_score > 0.85"
+    actions:
+      - type: "emit"
+        payload: "BOSS_FIGHT"
+    cooldown: 10.0
+
+  - name: "critical_health"
+    state: "*"
+    priority: 9
+    conditions:
+      - "player.hp < 25"
+    actions:
+      - type: "emit"
+        payload: "CRITICAL_HEALTH"
+    cooldown: 3.0
+
+  - name: "ambush_detection"
+    state: "exploration"
+    priority: 8
+    conditions:
+      - "environment.total_enemies >= 2"
+      - "environment.avg_proximity < 300"
+    actions:
+      - type: "emit"
+        payload: "AMBUSH_WARNING"
+    cooldown: 5.0
+
+hud:
+  theme: "tactical_minimal"
+  show_proximity_rings: true
+  show_direction_arrows: true
+  show_health_warnings: true
+  opacity: 0.75
+  scale: 1.0
+
+performance:
+  mode: "QUALITY"
+  max_latency_ms: 50
+  frame_skip: false
+  adaptive_quality: true
+
+custom:
+  game_notes: "Elden Ring - Open world with varied encounters"
+  developer: "FromSoftware"

@@ -1,0 +1,39 @@
+# Core dependencies
+numpy>=1.24.0
+opencv-python>=4.8.0
+Pillow>=10.0.0
+
+# AI/ML
+torch>=2.0.0
+torchvision>=0.15.0
+ultralytics>=8.0.0  # YOLO v8
+onnxruntime>=1.15.0
+
+# OCR
+pytesseract>=0.3.10
+easyocr>=1.7.0
+
+# Screen capture
+mss>=9.0.1  # Cross-platform screen capture
+pywin32>=306; sys_platform == 'win32'  # Windows-specific optimizations
+
+# UI/Overlay
+PyQt6>=6.5.0
+pyqtgraph>=0.13.0
+
+# Configuration & Data
+pydantic>=2.0.0
+pyyaml>=6.0
+toml>=0.10.2
+
+# Performance monitoring
+psutil>=5.9.0
+GPUtil>=1.4.0
+
+# Async & concurrency
+asyncio-mqtt>=0.16.1
+aiofiles>=23.0.0
+
+# Utilities
+python-dotenv>=1.0.0
+loguru>=0.7.0
