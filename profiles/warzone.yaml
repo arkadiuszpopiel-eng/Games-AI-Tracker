@@ -1,108 +1,141 @@
-name: "Call of Duty: Warzone"
-game_id: "warzone"
-version: "1.0"
-
+name: 'Call of Duty: Warzone'
+game_id: warzone
+version: '1.0'
 capture:
   fps: 60
-  roi: null  # Full screen
+  roi: null
   monitor: 0
-  format: "RGB"
-
+  format: RGB
 ai:
-  model: "yolov8s"
+  model: yolov8s
   confidence: 0.68
   iou_threshold: 0.42
-  device: "auto"
+  device: auto
   batch_size: 2
-
 ocr:
-  engine: "easyocr"
-  language: "eng"
+  engine: easyocr
+  language: eng
   zones:
-    health: [60, 900, 180, 40]
-    armor: [60, 940, 180, 35]
-    ammo: [1740, 960, 140, 45]
-    cash: [1650, 50, 120, 35]
-    circle: [960, 100, 250, 40]
-
+    health:
+    - 60
+    - 900
+    - 180
+    - 40
+    armor:
+    - 60
+    - 940
+    - 180
+    - 35
+    ammo:
+    - 1740
+    - 960
+    - 140
+    - 45
+    cash:
+    - 1650
+    - 50
+    - 120
+    - 35
+    circle:
+    - 960
+    - 100
+    - 250
+    - 40
 rules:
-  - name: "enemy_engagement"
-    state: "combat"
-    priority: 10
-    conditions:
-      - "enemy.distance < 150"
-      - "enemy.type == 'player'"
-    actions:
-      - type: "emit"
-        payload: "ENEMY_CLOSE"
-    cooldown: 1.0
-
-  - name: "third_party_warning"
-    state: "combat"
-    priority: 9
-    conditions:
-      - "environment.total_enemies >= 2"
-      - "enemy.distance < 200"
-      - "combat_duration > 15"
-    actions:
-      - type: "emit"
-        payload: "THIRD_PARTY_RISK"
-    cooldown: 3.0
-
-  - name: "low_armor"
-    state: "*"
-    priority: 10
-    conditions:
-      - "player.armor < 40"
-    actions:
-      - type: "emit"
-        payload: "LOW_ARMOR"
-    cooldown: 4.0
-
-  - name: "low_health"
-    state: "*"
-    priority: 10
-    conditions:
-      - "player.hp < 30"
-    actions:
-      - type: "emit"
-        payload: "LOW_HEALTH"
-    cooldown: 3.0
-
-  - name: "gas_approaching"
-    state: "exploration"
-    priority: 8
-    conditions:
-      - "circle.distance < 500"
-      - "circle.closing == true"
-    actions:
-      - type: "emit"
-        payload: "GAS_WARNING"
-    cooldown: 10.0
-
-  - name: "low_ammo"
-    state: "combat"
-    priority: 7
-    conditions:
-      - "player.ammo < 25"
-    actions:
-      - type: "emit"
-        payload: "LOW_AMMO"
-    cooldown: 5.0
-
-  - name: "loadout_ready"
-    state: "exploration"
-    priority: 5
-    conditions:
-      - "cash.amount >= 10000"
-      - "loadout.available == true"
-    actions:
-      - type: "emit"
-        payload: "LOADOUT_AVAILABLE"
-    cooldown: 15.0
-
+- name: enemy_engagement
+  state: combat
+  priority: 10
+  conditions:
+  - field: enemy.distance
+    operator: <
+    value: 150
+  - field: enemy.type
+    operator: ==
+    value: player
+  actions:
+  - type: emit
+    payload: ENEMY_CLOSE
+  cooldown: 1.0
+- name: third_party_warning
+  state: combat
+  priority: 9
+  conditions:
+  - field: environment.total_enemies
+    operator: '>='
+    value: 2
+  - field: enemy.distance
+    operator: <
+    value: 200
+  - field: combat_duration
+    operator: '>'
+    value: 15
+  actions:
+  - type: emit
+    payload: THIRD_PARTY_RISK
+  cooldown: 3.0
+- name: low_armor
+  state: '*'
+  priority: 10
+  conditions:
+  - field: player.armor
+    operator: <
+    value: 40
+  actions:
+  - type: emit
+    payload: LOW_ARMOR
+  cooldown: 4.0
+- name: low_health
+  state: '*'
+  priority: 10
+  conditions:
+  - field: player.hp
+    operator: <
+    value: 30
+  actions:
+  - type: emit
+    payload: LOW_HEALTH
+  cooldown: 3.0
+- name: gas_approaching
+  state: exploration
+  priority: 8
+  conditions:
+  - field: circle.distance
+    operator: <
+    value: 500
+  - field: circle.closing
+    operator: ==
+    value: true
+  actions:
+  - type: emit
+    payload: GAS_WARNING
+  cooldown: 10.0
+- name: low_ammo
+  state: combat
+  priority: 7
+  conditions:
+  - field: player.ammo
+    operator: <
+    value: 25
+  actions:
+  - type: emit
+    payload: LOW_AMMO
+  cooldown: 5.0
+- name: loadout_ready
+  state: exploration
+  priority: 5
+  conditions:
+  - field: cash.amount
+    operator: '>='
+    value: 10000
+  - field: loadout.available
+    operator: ==
+    value: true
+  actions:
+  - type: emit
+    payload: LOADOUT_AVAILABLE
+  cooldown: 15.0
 hud:
-  theme: "modern"
+  theme: modern
   show_proximity_rings: true
   show_direction_arrows: true
   show_health_warnings: true
@@ -110,18 +143,17 @@ hud:
   show_circle_timer: true
   opacity: 0.75
   scale: 0.9
-
 performance:
-  mode: "PERFORMANCE"
+  mode: PERFORMANCE
   max_latency_ms: 30
   frame_skip: false
   adaptive_quality: true
-
 custom:
-  game_notes: "Call of Duty: Warzone - Battle Royale. Focus on third-party awareness and gas circle management"
-  developer: "Infinity Ward / Raven Software"
-  publisher: "Activision"
-  genre: "Battle Royale"
+  game_notes: 'Call of Duty: Warzone - Battle Royale. Focus on third-party awareness
+    and gas circle management'
+  developer: Infinity Ward / Raven Software
+  publisher: Activision
+  genre: Battle Royale
   release_year: 2020
-  anti_cheat: "RICOCHET Anti-Cheat"
+  anti_cheat: RICOCHET Anti-Cheat
   max_players: 150

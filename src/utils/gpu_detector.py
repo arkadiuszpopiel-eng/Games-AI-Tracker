@@ -5,6 +5,7 @@ Wspiera: NVIDIA CUDA, AMD ROCm/DirectML, Intel.
 
 import sys
 import subprocess
+from pathlib import Path
 from typing import Optional, Dict, Tuple
 from loguru import logger
 
@@ -67,21 +68,39 @@ class GPUDetector:
         nvidia_gpu_name = None
         if sys.platform == "win32":
             try:
-                result = subprocess.run(
-                    ["wmic", "path", "win32_VideoController", "get", "name"],
-                    capture_output=True,
-                    text=True,
-                    timeout=5
-                )
-                gpu_names = [line.strip() for line in result.stdout.split('\n')
-                            if line.strip() and 'Name' not in line]
+                # Try to find wmic.exe
+                import shutil
+                wmic_path = shutil.which("wmic")
+                if not wmic_path:
+                    # Try common system paths
+                    possible_paths = [
+                        r"C:\Windows\System32\wbem\wmic.exe",
+                        r"C:\Windows\SysWOW64\wbem\wmic.exe"
+                    ]
+                    for path in possible_paths:
+                        if Path(path).exists():
+                            wmic_path = path
+                            break
 
-                # Find NVIDIA GPU
-                for name in gpu_names:
-                    if "NVIDIA" in name or "GeForce" in name or "RTX" in name:
-                        nvidia_gpu_name = name
-                        logger.info(f"🔍 System detected NVIDIA GPU: {name}")
-                        break
+                if wmic_path:
+                    result = subprocess.run(
+                        [wmic_path, "path", "win32_VideoController", "get", "name"],
+                        capture_output=True,
+                        text=True,
+                        timeout=5,
+                        creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
+                    )
+                    gpu_names = [line.strip() for line in result.stdout.split('\n')
+                                if line.strip() and 'Name' not in line]
+
+                    # Find NVIDIA GPU
+                    for name in gpu_names:
+                        if "NVIDIA" in name or "GeForce" in name or "RTX" in name:
+                            nvidia_gpu_name = name
+                            logger.info(f"🔍 System detected NVIDIA GPU: {name}")
+                            break
+                else:
+                    logger.debug("WMIC not found in system")
             except Exception as e:
                 logger.debug(f"WMIC detection failed: {e}")
 

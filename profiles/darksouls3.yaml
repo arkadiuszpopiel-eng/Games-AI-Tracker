@@ -27,8 +27,12 @@ rules:
     state: "combat"
     priority: 10
     conditions:
-      - "enemy.distance < 150"
-      - "enemy.threat_score > 0.7"
+      - field: "enemy.distance"
+        operator: "<"
+        value: 150
+      - field: "enemy.threat_score"
+        operator: ">"
+        value: 0.7
     actions:
       - type: "emit"
         payload: "CRITICAL_DANGER"
@@ -38,7 +42,9 @@ rules:
     state: "*"
     priority: 9
     conditions:
-      - "player.hp < 30"
+      - field: "player.hp"
+        operator: "<"
+        value: 30
     actions:
       - type: "emit"
         payload: "LOW_HEALTH"
@@ -48,7 +54,9 @@ rules:
     state: "combat"
     priority: 8
     conditions:
-      - "environment.total_enemies >= 3"
+      - field: "environment.total_enemies"
+        operator: ">="
+        value: 3
     actions:
       - type: "emit"
         payload: "HIGH_ENEMY_DENSITY"

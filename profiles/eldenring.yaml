@@ -28,7 +28,9 @@ rules:
     state: "HIGH_RISK_COMBAT"
     priority: 10
     conditions:
-      - "enemy.threat_score > 0.85"
+      - field: "enemy.threat_score"
+        operator: ">"
+        value: 0.85
     actions:
       - type: "emit"
         payload: "BOSS_FIGHT"
@@ -38,7 +40,9 @@ rules:
     state: "*"
     priority: 9
     conditions:
-      - "player.hp < 25"
+      - field: "player.hp"
+        operator: "<"
+        value: 25
     actions:
       - type: "emit"
         payload: "CRITICAL_HEALTH"
@@ -48,8 +52,12 @@ rules:
     state: "exploration"
     priority: 8
     conditions:
-      - "environment.total_enemies >= 2"
-      - "environment.avg_proximity < 300"
+      - field: "environment.total_enemies"
+        operator: ">="
+        value: 2
+      - field: "environment.avg_proximity"
+        operator: "<"
+        value: 300
     actions:
       - type: "emit"
         payload: "AMBUSH_WARNING"
