@@ -43,8 +43,34 @@ class OCREngine:
         self.reader = None
 
         if config.engine == "easyocr" and EASYOCR_AVAILABLE:
-            self.reader = easyocr.Reader([config.language], gpu=False)
-            logger.info("EasyOCR initialized")
+            # Map language codes: Tesseract -> EasyOCR
+            language_map = {
+                'eng': 'en',
+                'pol': 'pl',
+                'deu': 'de',
+                'fra': 'fr',
+                'spa': 'es',
+                'ita': 'it',
+                'rus': 'ru',
+                'jpn': 'ja',
+                'kor': 'ko',
+                'chi_sim': 'ch_sim',
+                'chi_tra': 'ch_tra',
+            }
+
+            # Convert language code
+            lang = language_map.get(config.language, 'en')
+
+            # Try to use GPU if available
+            try:
+                import torch
+                use_gpu = torch.cuda.is_available()
+            except:
+                use_gpu = False
+
+            logger.info(f"Initializing EasyOCR with language: {lang}, GPU: {use_gpu}")
+            self.reader = easyocr.Reader([lang], gpu=use_gpu)
+            logger.info("EasyOCR initialized successfully")
         elif config.engine == "tesseract" and TESSERACT_AVAILABLE:
             logger.info("Tesseract OCR initialized")
         else:
