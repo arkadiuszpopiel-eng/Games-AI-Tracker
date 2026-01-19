@@ -1,36 +1,36 @@
-# AI Vision Overlay / HUD Platform
+# AI Vision Overlay / Nakładka HUD
 
-**Single-Player Games • External • Safe • Modular • Enterprise-Grade**
+**Gry Jednoosobowe • Zewnętrzna • Bezpieczna • Modularna • Klasy Enterprise**
 
-## Overview
+## Przegląd
 
-An external AI-powered overlay/HUD system for single-player games that uses computer vision and OCR to understand game state and provide tactical awareness, accessibility assistance, and situational AI support.
+Zewnętrzny system nakładki oparty na sztucznej inteligencji dla gier jednoosobowych, który wykorzystuje wizję komputerową i OCR do zrozumienia stanu gry oraz zapewnienia wsparcia taktycznego, pomocy w dostępności i asysty sytuacyjnej AI.
 
-### Core Philosophy
-> "We do not read the game. We reconstruct game state through perception."
+### Filozofia Projektu
+> "Nie czytamy gry. Rekonstruujemy stan gry poprzez percepcję."
 
-## Key Features
+## Kluczowe Cechy
 
-- **100% External**: No DLL injection, memory modification, or game hooks
-- **AI Vision-Based**: Screen capture + computer vision + OCR only
-- **Anti-Cheat Compliant**: Designed with security and compliance in mind
-- **Modular Architecture**: Enterprise-grade plugin system
-- **Real-Time Overlay**: Transparent HUD with tactical information
-- **Profile System**: Game-specific configurations and rules
+- **100% Zewnętrzne**: Bez wstrzykiwania DLL, modyfikacji pamięci czy hooków gry
+- **Oparte na AI Vision**: Tylko przechwytywanie ekranu + wizja komputerowa + OCR
+- **Zgodne z Anti-Cheat**: Zaprojektowane z myślą o bezpieczeństwie i zgodności
+- **Architektura Modularna**: System wtyczek klasy enterprise
+- **Nakładka w Czasie Rzeczywistym**: Przezroczysty HUD z informacjami taktycznymi
+- **System Profili**: Konfiguracje specyficzne dla każdej gry
 
-## Architecture
+## Architektura
 
 ```
-Game (untouched)
- → Screen Capture Engine
- → Frame Preprocessor
- → AI Vision Core
- → OCR & UI Parsing
- → Scene Understanding
- → Context & Event Engine
- → Decision & Priority Manager
- → Overlay / HUD Renderer
- → Control Panel / Profiles / Plugins
+Gra (nietknięta)
+ → Silnik Przechwytywania Ekranu
+ → Preprocesor Klatek
+ → Rdzeń AI Vision
+ → OCR i Parsowanie UI
+ → Rozumienie Sceny
+ → Silnik Kontekstu i Zdarzeń
+ → Menedżer Decyzji i Priorytetów
+ → Renderer Nakładki / HUD
+ → Panel Sterowania / Profile / Wtyczki
 ```
 
 ## Modules
@@ -91,33 +91,62 @@ Game (untouched)
 - Sandbox isolation
 - Hot-loadable custom modules
 
-## Installation
+## Instalacja
+
+### 🚀 Automatyczna Instalacja (ZALECANE)
 
 ```bash
-# Clone repository
+# Uruchom automatyczny build - zrobi wszystko za Ciebie!
+build.bat
+```
+
+### Lub Instalacja Ręczna
+
+```bash
+# Klonuj repozytorium
 git clone https://github.com/yourusername/Games-AI-Tracker.git
 cd Games-AI-Tracker
 
-# Create virtual environment
+# Utwórz wirtualne środowisko
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+venv\Scripts\activate
 
-# Install dependencies
+# Zainstaluj zależności
 pip install -e .
 
-# Install development dependencies (optional)
+# Zainstaluj zależności deweloperskie (opcjonalne)
 pip install -e ".[dev]"
 ```
 
-## Quick Start
+## Szybki Start
 
 ```bash
-# Launch control panel
+# Uruchom aplikację (automatycznie)
+run.bat
+
+# Lub uruchom panel sterowania
 ai-vision-control
 
-# Or run directly
+# Lub bezpośrednio
 python -m core.main
 ```
+
+## Automatyczny Build
+
+System posiada **pełną automatyzację**:
+
+**`build.bat`** - Kompletna instalacja:
+- ✅ Sprawdzenie środowiska Python
+- ✅ Utworzenie wirtualnego środowiska
+- ✅ Instalacja wszystkich zależności
+- ✅ Pobranie modeli AI
+- ✅ Weryfikacja instalacji
+- ✅ Uruchomienie testów
+
+**`run.bat`** - Szybkie uruchomienie:
+- ✅ Aktywacja środowiska
+- ✅ Sprawdzenie zależności
+- ✅ Uruchomienie aplikacji
 
 ## Configuration
 
@@ -148,19 +177,19 @@ hud:
   show_proximity_rings: true
 ```
 
-## Performance Targets
+## Cele Wydajnościowe
 
-- **End-to-end latency**: <50ms
-- **CPU overhead**: <15%
-- **GPU overhead**: <10%
-- **Memory footprint**: <500MB
+- **Opóźnienie end-to-end**: <50ms
+- **Obciążenie CPU**: <15%
+- **Obciążenie GPU**: <10%
+- **Zużycie pamięci**: <500MB
 
-## Reliability & Fail-Safe
+## Niezawodność i Zabezpieczenia
 
-- **Watchdog** per module
-- **Crash isolation** with safe mode
-- **Graceful degradation** under load
-- **Auto-recovery** mechanisms
+- **Watchdog** dla każdego modułu
+- **Izolacja awarii** z trybem bezpiecznym
+- **Graceful degradation** pod obciążeniem
+- **Mechanizmy auto-recovery**
 
 ## Development Roadmap
 
