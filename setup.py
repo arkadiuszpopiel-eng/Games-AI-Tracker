@@ -15,7 +15,7 @@ setup(
     long_description_content_type="text/markdown",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
-    python_requires=">=3.10",
+    python_requires=">=3.10,<3.14",
     install_requires=requirements,
     extras_require={
         "dev": [
@@ -39,5 +39,7 @@ setup(
         "Topic :: Games/Entertainment",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
     ],
 )

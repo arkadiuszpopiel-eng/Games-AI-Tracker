@@ -21,9 +21,12 @@ torch>=2.0.0
 torchvision>=0.15.0
 
 ultralytics>=8.0.0  # YOLO v8
-onnxruntime>=1.15.0
 
-# Opcjonalne: AMD DirectML dla Windows (odkomentuj jeśli masz AMD GPU)
+# Optional: ONNX Runtime for model optimization (uncomment if needed)
+# Note: May not be available for Python 3.14+
+# onnxruntime>=1.15.0
+
+# Optional: AMD DirectML for Windows (uncomment if you have AMD GPU)
 # torch-directml>=0.2.0
 
 # OCR

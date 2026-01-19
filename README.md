@@ -91,6 +91,13 @@ Gra (nietknięta)
 - Sandbox isolation
 - Hot-loadable custom modules
 
+## Wymagania
+
+- **Python 3.10-3.13** (Python 3.14+ nie jest jeszcze wspierany przez wszystkie pakiety ML)
+- Windows 10/11 (podstawowe wsparcie dla Linux w przygotowaniu)
+- 4GB RAM (8GB zalecane dla AI)
+- GPU: NVIDIA (CUDA) lub AMD (DirectML/ROCm) - opcjonalne, ale zalecane
+
 ## Instalacja
 
 ### 🚀 Automatyczna Instalacja (ZALECANE)

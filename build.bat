@@ -34,11 +34,14 @@ for /f "tokens=2" %%a in ('python --version') do set PYTHON_VERSION=%%a
 echo [OK] Python %PYTHON_VERSION% found
 echo.
 
-:: Check Python version (requires 3.10+)
-python -c "import sys; exit(0 if sys.version_info >= (3, 10) else 1)" >nul 2>&1
+:: Check Python version (requires 3.10-3.13)
+python -c "import sys; exit(0 if (3, 10) <= sys.version_info < (3, 14) else 1)" >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [ERROR] Python 3.10 or newer required!
+    echo [ERROR] Python 3.10-3.13 required!
     echo    Current version: %PYTHON_VERSION%
+    echo.
+    echo Python 3.14+ is too new - many ML packages don't support it yet.
+    echo Please install Python 3.11 or 3.12 from: https://www.python.org/downloads/
     pause
     exit /b 1
 )
