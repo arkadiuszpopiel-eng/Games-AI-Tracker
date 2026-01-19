@@ -1,122 +1,121 @@
 @echo off
-chcp 65001 >nul 2>&1
 setlocal enabledelayedexpansion
 
 :: ============================================================================
-:: AI Vision Overlay - Skrypt Uruchamiający
+:: AI Vision Overlay - Quick Run Script
 :: ============================================================================
-:: Wersja: 1.0.0
-:: Opis: Szybkie uruchomienie aplikacji z weryfikacją środowiska
+:: Version: 1.0.0
+:: Description: Quick launch with environment verification
 :: ============================================================================
 
 color 0B
 echo.
-echo ╔════════════════════════════════════════════════════════════════╗
-echo ║              AI VISION OVERLAY - URUCHAMIANIE                  ║
-echo ║              Gry Jednoosobowe • Zewnętrzna                     ║
-echo ╚════════════════════════════════════════════════════════════════╝
+echo ================================================================
+echo           AI VISION OVERLAY - LAUNCHING
+echo           Single-Player Games - External - Safe
+echo ================================================================
 echo.
 
 :: ============================================================================
-:: Sprawdzenie czy środowisko istnieje
+:: Check if environment exists
 :: ============================================================================
 if not exist "venv" (
-    echo ❌ BŁĄD: Wirtualne środowisko nie istnieje!
+    echo [ERROR] Virtual environment does not exist!
     echo.
-    echo 🔧 Najpierw uruchom: build.bat
+    echo [FIX] Run: build.bat
     echo.
     pause
     exit /b 1
 )
 
 :: ============================================================================
-:: Aktywacja środowiska
+:: Activate environment
 :: ============================================================================
-echo [1/4] ⚡ Aktywacja środowiska wirtualnego...
+echo [1/4] Activating virtual environment...
 call venv\Scripts\activate.bat
 if %errorlevel% neq 0 (
-    echo ❌ BŁĄD: Nie można aktywować środowiska
+    echo [ERROR] Cannot activate environment
     echo.
-    echo 🔧 Spróbuj uruchomić: build.bat
+    echo [FIX] Try running: build.bat
     echo.
     pause
     exit /b 1
 )
-echo ✅ Środowisko aktywne
+echo [OK] Environment active
 echo.
 
 :: ============================================================================
-:: Sprawdzenie zależności
+:: Check dependencies
 :: ============================================================================
-echo [2/4] 🔍 Sprawdzanie zależności...
+echo [2/4] Checking dependencies...
 python -c "import numpy, cv2, yaml" >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ⚠️  Brak niektórych zależności
+    echo [WARNING] Some dependencies missing
     echo.
-    choice /C YN /M "Czy zainstalować brakujące pakiety"
+    choice /C YN /M "Install missing packages"
     if !errorlevel! equ 1 (
-        echo Instalowanie zależności...
+        echo Installing dependencies...
         python -m pip install -r requirements.txt --quiet
-        echo ✅ Zależności zainstalowane
+        echo [OK] Dependencies installed
     ) else (
-        echo ❌ Nie można uruchomić bez wszystkich zależności
+        echo [ERROR] Cannot run without all dependencies
         pause
         exit /b 1
     )
 ) else (
-    echo ✅ Wszystkie zależności dostępne
+    echo [OK] All dependencies available
 )
 echo.
 
 :: ============================================================================
-:: Wybór trybu uruchomienia
+:: Select run mode
 :: ============================================================================
-echo [3/4] 🎯 Wybór trybu uruchomienia...
+echo [3/4] Select run mode...
 echo.
-echo   1. Panel Sterowania (GUI) - Zalecane
-echo   2. Tryb Konsolowy (CLI)
-echo   3. Diagnostyka
-echo   4. Lista Profili
+echo   1. Control Panel (GUI) - Recommended
+echo   2. Console Mode (CLI)
+echo   3. Diagnostics
+echo   4. List Profiles
 echo.
 
-choice /C 1234 /M "Wybierz tryb"
+choice /C 1234 /M "Select mode"
 set CHOICE=!errorlevel!
 
 echo.
 
 :: ============================================================================
-:: Uruchomienie wybranego trybu
+:: Launch selected mode
 :: ============================================================================
-echo [4/4] 🚀 Uruchamianie aplikacji...
+echo [4/4] Launching application...
 echo.
 
 if !CHOICE! equ 1 (
-    echo 🖥️  Uruchamianie Panelu Sterowania...
+    echo [GUI] Launching Control Panel...
     echo.
     python -m ui.control_panel
 ) else if !CHOICE! equ 2 (
-    echo 💻 Uruchamianie w trybie konsolowym...
+    echo [CLI] Launching console mode...
     echo.
     python -m core.main
 ) else if !CHOICE! equ 3 (
-    echo 🔧 Tryb diagnostyczny...
+    echo [DIAG] Diagnostic mode...
     echo.
-    echo ═══════════════════════════════════════
+    echo =======================================
     echo Python Info:
     python --version
     echo.
-    echo Zainstalowane pakiety:
+    echo Installed packages:
     python -m pip list
     echo.
-    echo Testy systemu:
-    python -c "from src.core.config import SystemConfig; print('✅ Config OK')"
-    python -c "from src.core.types import Entity; print('✅ Types OK')"
-    python -c "import numpy, cv2; print('✅ CV2/NumPy OK')"
-    echo ═══════════════════════════════════════
+    echo System tests:
+    python -c "from src.core.config import SystemConfig; print('[OK] Config')"
+    python -c "from src.core.types import Entity; print('[OK] Types')"
+    python -c "import numpy, cv2; print('[OK] CV2/NumPy')"
+    echo =======================================
     echo.
     pause
 ) else if !CHOICE! equ 4 (
-    echo 📋 Dostępne profile:
+    echo [PROFILES] Available profiles:
     echo.
     python -m core.main --list-profiles
     echo.
@@ -125,24 +124,24 @@ if !CHOICE! equ 1 (
 
 if %errorlevel% neq 0 (
     echo.
-    echo ❌ Aplikacja zakończyła się z błędem
+    echo [ERROR] Application exited with error
     echo.
-    echo 🔍 Sprawdź logi w folderze logs/
+    echo Check logs in logs/ folder
     echo.
     pause
     exit /b 1
 )
 
 echo.
-echo ═══════════════════════════════════════════════════════════════
-echo Aplikacja została zamknięta
-echo ═══════════════════════════════════════════════════════════════
+echo ===============================================================
+echo Application closed
+echo ===============================================================
 echo.
 
-choice /C YN /M "Czy uruchomić ponownie"
+choice /C YN /M "Run again"
 if !errorlevel! equ 1 (
     echo.
-    echo 🔄 Restartowanie...
+    echo [RESTART] Restarting...
     timeout /t 2 >nul
     call run.bat
 )

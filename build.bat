@@ -1,153 +1,152 @@
 @echo off
-chcp 65001 >nul 2>&1
 setlocal enabledelayedexpansion
 
 :: ============================================================================
-:: AI Vision Overlay - Automatyczny System Budowania
+:: AI Vision Overlay - Automatic Build System
 :: ============================================================================
-:: Wersja: 1.0.0
-:: Opis: Kompletna automatyzacja instalacji i konfiguracji systemu
+:: Version: 1.0.0
+:: Description: Complete automation of installation and configuration
 :: ============================================================================
 
 color 0A
 echo.
-echo ╔════════════════════════════════════════════════════════════════╗
-echo ║          AI VISION OVERLAY - AUTOMATYCZNY BUILD                ║
-echo ║                  Klasy Enterprise • Modularna                  ║
-echo ╚════════════════════════════════════════════════════════════════╝
+echo ================================================================
+echo          AI VISION OVERLAY - AUTOMATIC BUILD
+echo                  Enterprise-Grade - Modular
+echo ================================================================
 echo.
 
 :: ============================================================================
-:: KROK 1: Sprawdzenie środowiska Python
+:: STEP 1: Check Python environment
 :: ============================================================================
-echo [1/8] 🔍 Sprawdzanie środowiska Python...
+echo [1/9] Checking Python environment...
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ❌ BŁĄD: Python nie jest zainstalowany!
+    echo [ERROR] Python is not installed!
     echo.
-    echo Pobierz Python 3.10+ z: https://www.python.org/downloads/
-    echo Upewnij się, że dodajesz Python do PATH podczas instalacji.
+    echo Download Python 3.10+ from: https://www.python.org/downloads/
+    echo Make sure to add Python to PATH during installation.
     pause
     exit /b 1
 )
 
 for /f "tokens=2" %%a in ('python --version') do set PYTHON_VERSION=%%a
-echo ✅ Python %PYTHON_VERSION% znaleziony
+echo [OK] Python %PYTHON_VERSION% found
 echo.
 
-:: Sprawdzenie wersji Python (wymaga 3.10+)
+:: Check Python version (requires 3.10+)
 python -c "import sys; exit(0 if sys.version_info >= (3, 10) else 1)" >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ❌ BŁĄD: Wymagany Python 3.10 lub nowszy!
-    echo    Obecna wersja: %PYTHON_VERSION%
+    echo [ERROR] Python 3.10 or newer required!
+    echo    Current version: %PYTHON_VERSION%
     pause
     exit /b 1
 )
 
 :: ============================================================================
-:: KROK 2: Sprawdzenie pip
+:: STEP 2: Check pip
 :: ============================================================================
-echo [2/8] 🔍 Sprawdzanie pip...
+echo [2/9] Checking pip...
 python -m pip --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ❌ pip nie znaleziony, instalowanie...
+    echo [ERROR] pip not found, installing...
     python -m ensurepip --default-pip
     python -m pip install --upgrade pip
 ) else (
-    echo ✅ pip zainstalowany
+    echo [OK] pip installed
     echo.
-    echo 📦 Aktualizacja pip...
+    echo [UPDATE] Updating pip...
     python -m pip install --upgrade pip --quiet
 )
 echo.
 
 :: ============================================================================
-:: KROK 3: Utworzenie wirtualnego środowiska
+:: STEP 3: Create virtual environment
 :: ============================================================================
-echo [3/8] 🔧 Tworzenie wirtualnego środowiska...
+echo [3/9] Creating virtual environment...
 if exist "venv" (
-    echo ⚠️  Wirtualne środowisko już istnieje
-    choice /C YN /M "Czy chcesz je usunąć i utworzyć na nowo"
+    echo [WARNING] Virtual environment already exists
+    choice /C YN /M "Delete and recreate"
     if !errorlevel! equ 1 (
-        echo Usuwanie starego środowiska...
+        echo Removing old environment...
         rmdir /s /q venv
         python -m venv venv
-        echo ✅ Nowe środowisko utworzone
+        echo [OK] New environment created
     ) else (
-        echo ℹ️  Używanie istniejącego środowiska
+        echo [INFO] Using existing environment
     )
 ) else (
     python -m venv venv
-    echo ✅ Wirtualne środowisko utworzone
+    echo [OK] Virtual environment created
 )
 echo.
 
 :: ============================================================================
-:: KROK 4: Aktywacja środowiska
+:: STEP 4: Activate environment
 :: ============================================================================
-echo [4/8] ⚡ Aktywacja wirtualnego środowiska...
+echo [4/9] Activating virtual environment...
 call venv\Scripts\activate.bat
 if %errorlevel% neq 0 (
-    echo ❌ BŁĄD: Nie można aktywować środowiska
+    echo [ERROR] Cannot activate environment
     pause
     exit /b 1
 )
-echo ✅ Środowisko aktywne
+echo [OK] Environment active
 echo.
 
 :: ============================================================================
-:: KROK 5: Instalacja podstawowych narzędzi
+:: STEP 5: Install basic tools
 :: ============================================================================
-echo [5/8] 🛠️  Instalacja podstawowych narzędzi...
+echo [5/9] Installing basic tools...
 echo.
-echo   Instalowanie setuptools, wheel...
+echo   Installing setuptools, wheel...
 python -m pip install --upgrade setuptools wheel --quiet
 if %errorlevel% neq 0 (
-    echo ❌ BŁĄD podczas instalacji narzędzi
+    echo [ERROR] Error installing tools
     pause
     exit /b 1
 )
-echo ✅ Narzędzia zainstalowane
+echo [OK] Tools installed
 echo.
 
 :: ============================================================================
-:: KROK 6: Instalacja zależności projektu
+:: STEP 6: Install project dependencies
 :: ============================================================================
-echo [6/8] 📦 Instalacja zależności projektu...
+echo [6/9] Installing project dependencies...
 echo.
-echo   To może potrwać kilka minut...
+echo   This may take a few minutes...
 echo.
 
 if exist "requirements.txt" (
-    echo   📄 Instalowanie z requirements.txt...
+    echo   [FILE] Installing from requirements.txt...
     python -m pip install -r requirements.txt
     if %errorlevel% neq 0 (
-        echo ⚠️  Wystąpiły problemy z niektórymi pakietami
-        echo    Kontynuowanie instalacji...
+        echo [WARNING] Issues with some packages
+        echo    Continuing installation...
     )
 ) else (
-    echo ⚠️  Plik requirements.txt nie znaleziony
+    echo [WARNING] requirements.txt not found
 )
 
 echo.
-echo   📄 Instalowanie projektu w trybie deweloperskim...
+echo   [PROJECT] Installing in development mode...
 python -m pip install -e .
 if %errorlevel% neq 0 (
-    echo ❌ BŁĄD podczas instalacji projektu
+    echo [ERROR] Error installing project
     pause
     exit /b 1
 )
 
-echo ✅ Zależności podstawowe zainstalowane
+echo [OK] Basic dependencies installed
 echo.
 
 :: ============================================================================
-:: KROK 6.5: Detekcja i instalacja wsparcia GPU
+:: STEP 6.5: GPU Detection and Installation
 :: ============================================================================
-echo [6.5/9] 🎮 Wykrywanie i konfiguracja GPU...
+echo [6.5/9] Detecting and configuring GPU...
 echo.
 
-echo   Sprawdzanie dostępnych GPU...
+echo   Checking available GPU...
 python -c "from src.utils.gpu_detector import GPUDetector; d = GPUDetector(); dtype, backend, info = d.detect(); print(f'DEVICE:{dtype}'); print(f'BACKEND:{backend}'); print(f'NAME:{info.get(\"name\", \"Unknown\")}' if info else 'NAME:CPU')" >gpu_detect.tmp 2>&1
 
 if exist "gpu_detect.tmp" (
@@ -162,166 +161,166 @@ if not defined GPU_BACKEND set GPU_BACKEND=cpu
 if not defined GPU_NAME set GPU_NAME=CPU
 
 echo.
-echo   ════════════════════════════════════════════════════════
-echo   GPU wykryty: !GPU_NAME!
-echo   Typ: !GPU_DEVICE! / Backend: !GPU_BACKEND!
-echo   ════════════════════════════════════════════════════════
+echo   ====================================================
+echo   GPU detected: !GPU_NAME!
+echo   Type: !GPU_DEVICE! / Backend: !GPU_BACKEND!
+echo   ====================================================
 echo.
 
-:: Instalacja odpowiednich pakietów dla GPU
+:: Install appropriate packages for GPU
 if "!GPU_DEVICE!"=="cuda" (
-    echo   🎯 NVIDIA GPU wykryte - instaluję CUDA support...
+    echo   [NVIDIA] NVIDIA GPU detected - installing CUDA support...
     python -m pip uninstall -y torch torchvision
     python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121 --quiet
     if !errorlevel! equ 0 (
-        echo   ✅ PyTorch z CUDA zainstalowany
+        echo   [OK] PyTorch with CUDA installed
     ) else (
-        echo   ⚠️  Błąd instalacji CUDA - używam domyślnego PyTorch
+        echo   [WARNING] CUDA installation error - using default PyTorch
     )
 ) else if "!GPU_BACKEND!"=="directml" (
-    echo   🎯 AMD GPU wykryte na Windows - instaluję DirectML support...
+    echo   [AMD] AMD GPU detected on Windows - installing DirectML support...
     python -m pip install torch-directml --quiet
     if !errorlevel! equ 0 (
-        echo   ✅ torch-directml zainstalowany dla AMD GPU
+        echo   [OK] torch-directml installed for AMD GPU
     ) else (
-        echo   ⚠️  Błąd instalacji DirectML - sprawdź ręcznie
+        echo   [WARNING] DirectML installation error - check manually
     )
 ) else if "!GPU_BACKEND!"=="rocm" (
-    echo   🎯 AMD GPU wykryte na Linux - instaluję ROCm support...
+    echo   [AMD] AMD GPU detected on Linux - installing ROCm support...
     python -m pip uninstall -y torch torchvision
     python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/rocm5.7 --quiet
     if !errorlevel! equ 0 (
-        echo   ✅ PyTorch z ROCm zainstalowany
+        echo   [OK] PyTorch with ROCm installed
     ) else (
-        echo   ⚠️  Błąd instalacji ROCm - używam domyślnego PyTorch
+        echo   [WARNING] ROCm installation error - using default PyTorch
     )
 ) else (
-    echo   ℹ️  Używam CPU - aplikacja będzie wolniejsza
-    echo   💡 Wskazówka: Jeśli masz GPU, zainstaluj odpowiednie sterowniki:
-    echo      • NVIDIA: https://pytorch.org/get-started/locally/
-    echo      • AMD Windows: pip install torch-directml
-    echo      • AMD Linux: https://pytorch.org/get-started/locally/
+    echo   [INFO] Using CPU - application will be slower
+    echo   [TIP] If you have GPU, install appropriate drivers:
+    echo      - NVIDIA: https://pytorch.org/get-started/locally/
+    echo      - AMD Windows: pip install torch-directml
+    echo      - AMD Linux: https://pytorch.org/get-started/locally/
 )
 
 echo.
-echo ✅ Konfiguracja GPU zakończona
+echo [OK] GPU configuration complete
 echo.
 
 :: ============================================================================
-:: KROK 7: Pobieranie modeli AI (opcjonalne)
+:: STEP 7: Download AI models (optional)
 :: ============================================================================
-echo [7/9] 🤖 Konfiguracja modeli AI...
+echo [7/9] Configuring AI models...
 echo.
 
 if not exist "models" mkdir models
 
-echo   Pobieranie modelu YOLOv8n...
+echo   Downloading YOLOv8n model...
 python -c "from ultralytics import YOLO; model = YOLO('yolov8n.pt')" >nul 2>&1
 if %errorlevel% equ 0 (
-    echo ✅ Model YOLOv8n gotowy
+    echo [OK] YOLOv8n model ready
 ) else (
-    echo ⚠️  Model będzie pobrany przy pierwszym uruchomieniu
+    echo [WARNING] Model will be downloaded on first run
 )
 echo.
 
 :: ============================================================================
-:: KROK 8: Test GPU
+:: STEP 8: GPU Test
 :: ============================================================================
-echo [8/9] 🎮 Test konfiguracji GPU...
+echo [8/9] Testing GPU configuration...
 echo.
 
-echo   Testowanie GPU...
+echo   Testing GPU...
 python -m src.utils.gpu_detector 2>nul
 if !errorlevel! equ 0 (
-    echo ✅ GPU poprawnie skonfigurowane
+    echo [OK] GPU properly configured
 ) else (
-    echo ⚠️  Test GPU nie powiódł się - sprawdź konfigurację
+    echo [WARNING] GPU test failed - check configuration
 )
 echo.
 
 :: ============================================================================
-:: KROK 9: Weryfikacja instalacji
+:: STEP 9: Installation verification
 :: ============================================================================
-echo [9/9] ✔️  Weryfikacja instalacji...
+echo [9/9] Verifying installation...
 echo.
 
-echo   Sprawdzanie importów...
+echo   Checking imports...
 python -c "import numpy; import cv2; import yaml" >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ❌ Podstawowe biblioteki nie zainstalowane poprawnie
+    echo [ERROR] Basic libraries not installed properly
     pause
     exit /b 1
 )
 
 python -c "import src.core.types; import src.core.config" >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ❌ Moduły projektu nie zainstalowane poprawnie
+    echo [ERROR] Project modules not installed properly
     pause
     exit /b 1
 )
 
-echo ✅ Wszystkie moduły zainstalowane poprawnie
+echo [OK] All modules installed successfully
 echo.
 
 :: ============================================================================
-:: URUCHOMIENIE TESTÓW (opcjonalne)
+:: RUN TESTS (optional)
 :: ============================================================================
 echo.
-choice /C YN /M "Czy uruchomić testy jednostkowe"
+choice /C YN /M "Run unit tests"
 if !errorlevel! equ 1 (
     echo.
-    echo 🧪 Uruchamianie testów...
+    echo [TESTS] Running tests...
     python -m pytest tests/ -v --tb=short
     if !errorlevel! equ 0 (
-        echo ✅ Wszystkie testy przeszły pomyślnie
+        echo [OK] All tests passed successfully
     ) else (
-        echo ⚠️  Niektóre testy nie powiodły się
-        echo    Aplikacja powinna działać, ale sprawdź logi
+        echo [WARNING] Some tests failed
+        echo    Application should work, but check logs
     )
 )
 
 :: ============================================================================
-:: PODSUMOWANIE
+:: SUMMARY
 :: ============================================================================
 echo.
-echo ╔════════════════════════════════════════════════════════════════╗
-echo ║                    ✅ BUILD ZAKOŃCZONY!                         ║
-echo ╚════════════════════════════════════════════════════════════════╝
+echo ================================================================
+echo                    BUILD COMPLETED!
+echo ================================================================
 echo.
-echo 🎉 System AI Vision Overlay został pomyślnie zbudowany!
+echo [SUCCESS] AI Vision Overlay system successfully built!
 echo.
-echo 📁 Struktura projektu:
-echo    ├─ src/          - Kod źródłowy
-echo    ├─ profiles/     - Profile gier
-echo    ├─ models/       - Modele AI
-echo    ├─ docs/         - Dokumentacja
-echo    └─ tests/        - Testy
+echo [STRUCTURE] Project structure:
+echo    +- src/          - Source code
+echo    +- profiles/     - Game profiles
+echo    +- models/       - AI models
+echo    +- docs/         - Documentation
+echo    +- tests/        - Tests
 echo.
-echo 🚀 Aby uruchomić aplikację:
-echo    • Uruchom: run.bat
-echo    • Lub: python -m core.main
+echo [RUN] To launch application:
+echo    - Run: run.bat
+echo    - Or: python -m core.main
 echo.
-echo 📖 Dokumentacja: docs\README_PL.md
-echo 🎮 Profile przykładowe: profiles\darksouls3.yaml
+echo [DOCS] Documentation: docs\README_PL.md
+echo [EXAMPLES] Example profiles: profiles\darksouls3.yaml
 echo.
-echo ⚙️  Następne kroki:
-echo    1. Sprawdź profile w folderze profiles/
-echo    2. Dostosuj konfigurację dla swojej gry
-echo    3. Uruchom aplikację: run.bat
+echo [NEXT STEPS]
+echo    1. Check profiles in profiles/ folder
+echo    2. Adjust configuration for your game
+echo    3. Run application: run.bat
 echo.
 
-choice /C YN /M "Czy uruchomić aplikację teraz"
+choice /C YN /M "Launch application now"
 if !errorlevel! equ 1 (
     echo.
-    echo 🚀 Uruchamianie AI Vision Overlay...
+    echo [LAUNCH] Starting AI Vision Overlay...
     call run.bat
 ) else (
     echo.
-    echo Możesz uruchomić aplikację później poleceniem: run.bat
+    echo You can run the application later with: run.bat
 )
 
 echo.
-echo Naciśnij dowolny klawisz aby zakończyć...
+echo Press any key to exit...
 pause >nul
 
 endlocal
