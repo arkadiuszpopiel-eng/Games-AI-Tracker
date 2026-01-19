@@ -177,9 +177,34 @@ hud:
   show_proximity_rings: true
 ```
 
+## 🎮 Tryby Okna Gry
+
+**⭐ ZALECANE: Pełne okno bez ramek (Borderless Windowed)**
+
+AI Vision działa z **wszystkimi trybami okna**:
+- ✅ **Borderless Windowed** - najlepszy! (<5ms latencja)
+- ✅ Fullscreen Exclusive - działa (10-15ms latencja)
+- ✅ Windowed - pełne wsparcie
+
+### Dlaczego Borderless Windowed?
+```
+✅ Najlepsza wydajność capture
+✅ Overlay zawsze widoczny
+✅ Łatwe Alt+Tab
+✅ Zero problemów
+```
+
+**Jak włączyć w grze:**
+```
+Ustawienia → Grafika → Tryb wyświetlania:
+"Pełne okno bez ramek" / "Borderless Windowed"
+```
+
+📖 Więcej: `docs/TRYBY_OKNA_PL.md`
+
 ## Cele Wydajnościowe
 
-- **Opóźnienie end-to-end**: <50ms
+- **Opóźnienie end-to-end**: <50ms (Borderless: <5ms capture!)
 - **Obciążenie CPU**: <15%
 - **Obciążenie GPU**: <10%
 - **Zużycie pamięci**: <500MB
